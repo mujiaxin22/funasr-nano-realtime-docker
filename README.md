@@ -45,7 +45,7 @@ docker run -d --name funasr-nano --gpus all --ipc=host \
     --history-max-sentences 1
 ```
 
-## 参数说明
+## 参数说明（其余的参数看funasr官方https://github.com/modelscope/FunASR/blob/main/docs/vllm_guide.md）
 
 | 参数 | 默认值 | 说明 |
 |------|--------|------|
