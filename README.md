@@ -1,23 +1,56 @@
 # funasr-nano-realtime-docker
-funasr-nano-realtime-docker,funasr的实时流版本
-先build镜像，以及内置了国内modelscope下载
+
+FunASR 的实时流式版本 Docker 部署。
+
+## 构建镜像
+
+镜像内置了国内 ModelScope 下载源：
+
+```bash
 cd /opt && docker build -t funasr-nano-vllm:local .
-1、原版初始版本，官方原版
- docker run -d --name funasr-nano --gpus all --ipc=host   -p 10095:10095   -v /opt/model:/opt/model   funasr-nano-vllm:local   funasr-realtime-server     --port 10095     --gpu-memory-utilization 0.15     --max-model-len 1024
+```
 
+## 运行
 
+### 1. 原版（官方原版）
 
-# --max-model-len 1024 默认就是 2048，最大4096，最小1024
-# --gpu-memory-utilization 0.15  总显存15%可以改更大改的越大并发就越高，看现场显存剩多少
-# --vad-silence-ms 断句静音阈值，固定值（默认 0 = 官方动态表）
-# --vad-max-segment-ms 15000 单句说满就强制切（默认 0 = 官方 60 秒）
-# --history-max-sentences 1	每条响应最多带几句（默认 0 = 全部）
-
-2、改良版，修改了输出格式，一句话一条输出，不带之前的结果，增加了lang字段，自动识别语言
-
+```bash
 docker run -d --name funasr-nano --gpus all --ipc=host \
   -p 10095:10095 \
   -v /opt/model:/opt/model \
   funasr-nano-vllm:local \
-  funasr-realtime-server --port 10095 --gpu-memory-utilization 0.38 --max-model-len 2048 --partial-window-sec 5 --decode-interval 0.6 \
-    --vad-silence-ms 800 --vad-max-segment-ms 15000 --history-max-sentences 1
+  funasr-realtime-server \
+    --port 10095 \
+    --gpu-memory-utilization 0.15 \
+    --max-model-len 1024
+```
+
+### 2. 改良版
+
+修改了输出格式：一句话一条输出、不携带之前的结果，新增 `lang` 字段自动识别语言。
+
+```bash
+docker run -d --name funasr-nano --gpus all --ipc=host \
+  -p 10095:10095 \
+  -v /opt/model:/opt/model \
+  funasr-nano-vllm:local \
+  funasr-realtime-server \
+    --port 10095 \
+    --gpu-memory-utilization 0.38 \
+    --max-model-len 2048 \
+    --partial-window-sec 5 \
+    --decode-interval 0.6 \
+    --vad-silence-ms 800 \
+    --vad-max-segment-ms 15000 \
+    --history-max-sentences 1
+```
+
+## 参数说明
+
+| 参数 | 默认值 | 说明 |
+|------|--------|------|
+| `--max-model-len` | 2048 | 模型最大上下文长度。最小 1024，最大 4096 |
+| `--gpu-memory-utilization` | - | 占用总显存的比例，如 `0.15` 表示 15%。调得越大并发越高，根据现场剩余显存决定 |
+| `--vad-silence-ms` | 0 | 断句静音阈值（毫秒），固定值。`0` 表示使用官方动态表 |
+| `--vad-max-segment-ms` | 0 | 单句说满即强制切分（毫秒）。`0` 表示使用官方的 60 秒 |
+| `--history-max-sentences` | 0 | 每条响应最多携带几句结果。`0` 表示携带全部 |
